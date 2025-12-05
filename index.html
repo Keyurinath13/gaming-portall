@@ -1,82 +1,148 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Simple Browser Game</title>
-<style>
-    body { margin: 0; background: #222; overflow: hidden; }
-    #player {
-        width: 40px; height: 40px;
-        background: #4CAF50;
-        position: absolute;
-        top: 200px; left: 200px;
-        border-radius: 5px;
-    }
-    #coin {
-        width: 30px; height: 30px;
-        background: gold;
-        position: absolute;
-        border-radius: 50%;
-    }
-    #score {
-        position: absolute;
-        top: 10px; left: 10px;
-        color: white;
-        font-size: 24px;
-        font-family: Arial;
-    }
-</style>
+    <title>Catch the Ball Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(#1e1e1e, #333);
+            font-family: Arial, sans-serif;
+        }
+
+        #gameArea {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #bucket {
+            width: 120px;
+            height: 25px;
+            background: #00eaff;
+            position: absolute;
+            bottom: 30px;
+            border-radius: 20px;
+        }
+
+        .ball {
+            width: 30px;
+            height: 30px;
+            background: red;
+            position: absolute;
+            border-radius: 50%;
+            box-shadow: 0 0 10px red;
+        }
+
+        #scoreText {
+            font-size: 28px;
+            color: white;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+#gameOverText {
+            display: none;
+            color: white;
+            font-size: 40px;
+            position: absolute;
+            top: 40%;
+            left: 35%;
+        }
+    </style>
 </head>
 <body>
 
-<div id="player"></div>
-<div id="coin"></div>
-<div id="score">Score: 0</div>
+<div id="gameArea">
+    <div id="scoreText">Score: 0</div>
+    <div id="bucket"></div>
+    <div id="gameOverText">GAME OVER<br>Press R to Restart</div>
+</div>
 
 <script>
-    const player = document.getElementById("player");
-    const coin = document.getElementById("coin");
-    const scoreText = document.getElementById("score");
+    const gameArea = document.getElementById("gameArea");
+    const bucket = document.getElementById("bucket");
+    const scoreText = document.getElementById("scoreText");
+    const gameOverText = document.getElementById("gameOverText");
+
+    let bucketX = window.innerWidth / 2;
+    let speed = 3;
     let score = 0;
+    let gameOver = false;
 
-    // Set random coin position
-    function placeCoin() {
-        coin.style.left = Math.random() * (window.innerWidth - 30) + "px";
-        coin.style.top = Math.random() * (window.innerHeight - 30) + "px";
-    }
-
-    placeCoin();
-
-    // Player movement
-    let px = 200, py = 200;
-    const speed = 8;
-
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowUp") py -= speed;
-        if (e.key === "ArrowDown") py += speed;
-        if (e.key === "ArrowLeft") px -= speed;
-        if (e.key === "ArrowRight") px += speed;
-
-        player.style.left = px + "px";
-        player.style.top = py + "px";
-
-        checkCollision();
+    // Move bucket with mouse
+    document.addEventListener("mousemove", (e) => {
+        bucketX = e.clientX - 60;
+        bucket.style.left = bucketX + "px";
     });
 
-    // Check collision with coin
-    function checkCollision() {
-        const p = player.getBoundingClientRect();
-        const c = coin.getBoundingClientRect();
+    // Create a falling ball
+    function createBall() {
+        if (gameOver) return;
 
-        if (!(p.right < c.left || 
-              p.left > c.right ||
-              p.bottom < c.top ||
-              p.top > c.bottom)) {
-            
-            score++;
-            scoreText.textContent = "Score: " + score;
-            placeCoin();
+        const ball = document.createElement("div");
+        ball.classList.add("ball");
+
+        let posX = Math.random() * (window.innerWidth - 30);
+        ball.style.left = posX + "px";
+        ball.style.top = "-40px";
+
+        gameArea.appendChild(ball);
+
+        let fallSpeed = speed;
+
+        function fall() {
+            if (gameOver) return;
+
+            let ballTop = parseInt(ball.style.top);
+            ball.style.top = ballTop + fallSpeed + "px";
+
+            // collision detection
+            let bucketRect = bucket.getBoundingClientRect();
+            let ballRect = ball.getBoundingClientRect();
+
+            if (
+                ballRect.bottom >= bucketRect.top &&
+                ballRect.left >= bucketRect.left &&
+                ballRect.right <= bucketRect.right
+            ) {
+                score++;
+                scoreText.innerHTML = "Score: " + score;
+                ball.remove();
+                speed += 0.2; // increase difficulty
+                return;
+            }
+
+            // if ball hits ground → Game Over
+            if (ballTop > window.innerHeight) {
+                ball.remove();
+                endGame();
+                return;
+            }
+
+            requestAnimationFrame(fall);
         }
+
+        fall();
     }
+
+    // Generate balls repeatedly
+    setInterval(() => {
+        if (!gameOver) createBall();
+    }, 900);
+
+    // Game Over
+    function endGame() {
+        gameOver = true;
+        gameOverText.style.display = "block";
+    }
+
+    // Restart
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "r" || e.key === "R") {
+            location.reload();
+        }
+    });
 </script>
 
 </body>
