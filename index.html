@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Simple Browser Game</title>
+<style>
+    body { margin: 0; background: #222; overflow: hidden; }
+    #player {
+        width: 40px; height: 40px;
+        background: #4CAF50;
+        position: absolute;
+        top: 200px; left: 200px;
+        border-radius: 5px;
+    }
+    #coin {
+        width: 30px; height: 30px;
+        background: gold;
+        position: absolute;
+        border-radius: 50%;
+    }
+    #score {
+        position: absolute;
+        top: 10px; left: 10px;
+        color: white;
+        font-size: 24px;
+        font-family: Arial;
+    }
+</style>
+</head>
+<body>
+
+<div id="player"></div>
+<div id="coin"></div>
+<div id="score">Score: 0</div>
+
+<script>
+    const player = document.getElementById("player");
+    const coin = document.getElementById("coin");
+    const scoreText = document.getElementById("score");
+    let score = 0;
+
+    // Set random coin position
+    function placeCoin() {
+        coin.style.left = Math.random() * (window.innerWidth - 30) + "px";
+        coin.style.top = Math.random() * (window.innerHeight - 30) + "px";
+    }
+
+    placeCoin();
+
+    // Player movement
+    let px = 200, py = 200;
+    const speed = 8;
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowUp") py -= speed;
+        if (e.key === "ArrowDown") py += speed;
+        if (e.key === "ArrowLeft") px -= speed;
+        if (e.key === "ArrowRight") px += speed;
+
+        player.style.left = px + "px";
+        player.style.top = py + "px";
+
+        checkCollision();
+    });
+
+    // Check collision with coin
+    function checkCollision() {
+        const p = player.getBoundingClientRect();
+        const c = coin.getBoundingClientRect();
+
+        if (!(p.right < c.left || 
+              p.left > c.right ||
+              p.bottom < c.top ||
+              p.top > c.bottom)) {
+            
+            score++;
+            scoreText.textContent = "Score: " + score;
+            placeCoin();
+        }
+    }
+</script>
+
+</body>
+</html>
